@@ -6,9 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, \
-    CreateAPIView, GenericAPIView
-from rest_framework.mixins import UpdateModelMixin, DestroyModelMixin
+
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -17,16 +15,9 @@ from main.filters import PhotoFilter
 from main.models import Category, Photo, Review, Favourite, Likes, Rating
 from main.permissions import IsPhotographer
 from main.serializers import CategorySerializer, PhotoSerializer, PhotoListSerializer, ReviewSerializer, \
-    LikesSerializer, RatingSerializer
+    LikesSerializer, RatingSerializer, FavouriteSerializer
 
 
-# class PermissionMixin:
-#     def get_permissions(self):
-#         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-#             permissions = [IsAdminUser, ]
-#         else:
-#             permissions = [IsAuthenticated, ]
-#         return [permission() for permission in permissions]
 
 
 class CategoryListView(generics.ListAPIView):
@@ -54,20 +45,20 @@ class PhotoViewSet(ModelViewSet):
             return PhotoListSerializer
         return PhotoSerializer
 
-    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
-    def filter(self, request, pk=None):
-        queryset = self.get_queryset()
-        start_date = timezone.now() - timedelta(days=1)
-        queryset = queryset.filter(created_at__gte=start_date)
-        serializer = PhotoSerializer(queryset, many=True, context={'request':request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    # def filter(self, request, pk=None):
+    #     queryset = self.get_queryset()
+    #     start_date = timezone.now() - timedelta(days=1)
+    #     queryset = queryset.filter(created_at__gte=start_date)
+    #     serializer = PhotoSerializer(queryset, many=True, context={'request': request})
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def search(self, request, pk=None):
         q = request.query_params.get('q')
         queryset = self.get_queryset()
         queryset = queryset.filter(Q(title__icontains=q) | Q(category__iname=q))
-        serializer = PhotoSerializer(queryset, many=True, context={'request':request})
+        serializer = PhotoSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
@@ -109,6 +100,12 @@ class LikesViewSet(ModelViewSet):
 class RatingViewSet(ModelViewSet):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
+    permission_classes = [IsPhotographer, ]
+
+
+class FavouriteViewSet(ModelViewSet):
+    queryset = Favourite.objects.all()
+    serializer_class = FavouriteSerializer
     permission_classes = [IsPhotographer, ]
 
 

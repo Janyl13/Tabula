@@ -27,7 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
     path('api/v1/categories/', CategoryListView.as_view()),
-    path('api/v1/photo/', PhotoListView.as_view()),
+    path('api/v1/photos/', PhotoListView.as_view()),
     path('api/v1/account/', include('account.urls')),
     path('api/v1/docs/', schema_view.with_ui('swagger')),
 
