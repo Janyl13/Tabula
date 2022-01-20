@@ -101,3 +101,12 @@ class FavouriteSerializer(serializers.ModelSerializer):
         representation['photographer'] = instance.photographer.email
         representation['photo'] = instance.photo.title
         return representation
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        photographer = request.user
+        photo = validated_data.get('photo')
+        favourite = Favourite.objects.get_or_create(photographer=photographer, photo=photo)[0]
+        favourite.favourite = True if favourite.favourite is False else False
+        favourite.save()
+        return favourite
